@@ -22,6 +22,12 @@ Transcribe a video (extracts audio first):
 python3 x_transcribe.py /path/to/video.mp4 --out-dir /path/to/output
 ```
 
+Transcribe from a URL (downloads first):
+
+```bash
+python3 x_transcribe.py --url "https://x.com/..." --out-dir /path/to/output
+```
+
 Transcribe an audio file directly:
 
 ```bash
@@ -35,6 +41,8 @@ python3 x_transcribe.py /path/to/audio.wav
 - `--beam-size` (default: `5`)
 - `--no-vad` (disable VAD filtering)
 - `--keep-wav` (keep extracted WAV next to outputs)
+- `--url` (download video from URL first)
+- `--keep-download` (keep downloaded video)
 
 ## Outputs
 

@@ -63,20 +63,49 @@ def transcribe(
             )
 
 
+def download_url(url: str, out_dir: Path) -> Path:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        "yt-dlp",
+        "--no-playlist",
+        "-f",
+        "bestvideo+bestaudio/best",
+        "--merge-output-format",
+        "mp4",
+        "-o",
+        str(out_dir / "yt_%(id)s.%(ext)s"),
+        "--print",
+        "filename",
+        url,
+    ]
+    result = subprocess.run(cmd, check=True, text=True, capture_output=True)
+    output = result.stdout.strip().splitlines()
+    if not output:
+        raise RuntimeError("yt-dlp did not return a filename.")
+    return Path(output[-1]).resolve()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Local transcription for short videos.")
-    parser.add_argument("input", help="Path to video or audio file.")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("input", nargs="?", help="Path to video or audio file.")
+    group.add_argument("--url", help="Video URL to download and transcribe.")
     parser.add_argument("--out-dir", default=".", help="Output directory (default: current).")
     parser.add_argument("--model", default="large-v3", help="Whisper model size.")
     parser.add_argument("--compute-type", default="int8", help="Compute type for faster-whisper.")
     parser.add_argument("--beam-size", type=int, default=5, help="Beam size.")
     parser.add_argument("--no-vad", action="store_true", help="Disable VAD filtering.")
     parser.add_argument("--keep-wav", action="store_true", help="Keep extracted WAV.")
+    parser.add_argument("--keep-download", action="store_true", help="Keep downloaded video.")
     args = parser.parse_args()
 
-    input_path = Path(args.input).expanduser().resolve()
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.url:
+        input_path = download_url(args.url, out_dir)
+    else:
+        input_path = Path(args.input).expanduser().resolve()
 
     base_name = input_path.stem
     out_txt = out_dir / f"{base_name}.txt"
@@ -102,6 +131,11 @@ def main() -> None:
     if (not is_audio) and (not args.keep_wav):
         try:
             os.remove(audio_path)
+        except OSError:
+            pass
+    if args.url and (not args.keep_download):
+        try:
+            os.remove(input_path)
         except OSError:
             pass
 
