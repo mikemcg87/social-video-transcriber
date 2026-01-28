@@ -1,6 +1,8 @@
 # x-transcribe
 
-Local transcription pipeline for short social videos (Twitter/X, etc.).
+Local transcription pipeline for social videos, especially when files are too large for hosted AI uploads or when platforms (e.g., Twitter/X) have no captions.
+
+For YouTube, you may not need local transcription if you already have an MCP server that can fetch transcripts directly.
 
 ## Requirements
 
